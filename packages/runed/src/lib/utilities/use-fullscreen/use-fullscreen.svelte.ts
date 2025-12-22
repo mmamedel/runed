@@ -29,12 +29,12 @@ const eventHandlers = [
 ] as any as "fullscreenchange"[];
 
 export function useFullscreen<T extends Element = HTMLElement>(
-	target?: MaybeElementGetter<T>,
+	targetGetter?: MaybeElementGetter<T>,
 	options: UseFullscreenOptions = {}
 ): UseFullscreenReturn {
 	const { document = defaultDocument, autoExit = false } = options;
 
-	let targetRef = $derived(extract(target) ?? document?.documentElement) as T | null | undefined;
+	let target = $derived(extract(targetGetter) ?? document?.documentElement) as T | null | undefined;
 	let isFullscreen = $state(false);
 
 	const requestMethod = $derived.by<"requestFullscreen" | undefined>(() => {
@@ -46,7 +46,7 @@ export function useFullscreen<T extends Element = HTMLElement>(
 			"webkitRequestFullScreen",
 			"mozRequestFullScreen",
 			"msRequestFullscreen",
-		].find((m) => (document && m in document) || (targetRef && m in targetRef)) as
+		].find((m) => (document && m in document) || (target && m in target)) as
 			| "requestFullscreen"
 			| undefined;
 	});
@@ -59,7 +59,7 @@ export function useFullscreen<T extends Element = HTMLElement>(
 			"webkitCancelFullScreen",
 			"mozCancelFullScreen",
 			"msExitFullscreen",
-		].find((m) => (document && m in document) || (targetRef && m in targetRef)) as
+		].find((m) => (document && m in document) || (target && m in target)) as
 			| "exitFullscreen"
 			| undefined;
 	});
@@ -71,7 +71,7 @@ export function useFullscreen<T extends Element = HTMLElement>(
 			"webkitDisplayingFullscreen",
 			"mozFullScreen",
 			"msFullscreenElement",
-		].find((m) => (document && m in document) || (targetRef && m in targetRef)) as
+		].find((m) => (document && m in document) || (target && m in target)) as
 			| "fullscreenEnabled"
 			| undefined;
 	});
@@ -84,11 +84,11 @@ export function useFullscreen<T extends Element = HTMLElement>(
 	].find((m) => document && m in document) as "fullscreenElement" | undefined;
 
 	const isSupported = $derived(
-		!!(targetRef && document && requestMethod && exitMethod && fullscreenEnabled)
+		!!(target && document && requestMethod && exitMethod && fullscreenEnabled)
 	);
 
 	const isCurrentElementFullScreen = (): boolean => {
-		if (fullscreenElementMethod) return document?.[fullscreenElementMethod] === targetRef;
+		if (fullscreenElementMethod) return document?.[fullscreenElementMethod] === target;
 		return false;
 	};
 
@@ -97,7 +97,6 @@ export function useFullscreen<T extends Element = HTMLElement>(
 			if (document && document[fullscreenEnabled] != null) {
 				return document[fullscreenEnabled];
 			} else {
-				const target = targetRef;
 				// @ts-expect-error - Fallback for WebKit and iOS Safari browsers
 				if (target?.[fullscreenEnabled] != null) {
 					// @ts-expect-error - Fallback for WebKit and iOS Safari browsers
@@ -114,7 +113,6 @@ export function useFullscreen<T extends Element = HTMLElement>(
 			if (document?.[exitMethod] != null) {
 				await document[exitMethod]();
 			} else {
-				const target = targetRef;
 				// @ts-expect-error - Fallback for Safari iOS
 				if (target?.[exitMethod] != null)
 					// @ts-expect-error - Fallback for Safari iOS
@@ -130,7 +128,6 @@ export function useFullscreen<T extends Element = HTMLElement>(
 
 		if (isElementFullScreen()) await exit();
 
-		const target = targetRef;
 		if (requestMethod && target?.[requestMethod] != null) {
 			await target[requestMethod]();
 			isFullscreen = true;
@@ -149,7 +146,7 @@ export function useFullscreen<T extends Element = HTMLElement>(
 
 	const listenerOptions = { capture: false, passive: true };
 	useEventListener(document, eventHandlers, handlerCallback, listenerOptions);
-	useEventListener(() => targetRef, eventHandlers, handlerCallback, listenerOptions);
+	useEventListener(() => target, eventHandlers, handlerCallback, listenerOptions);
 
 	$effect(() => {
 		handlerCallback();
