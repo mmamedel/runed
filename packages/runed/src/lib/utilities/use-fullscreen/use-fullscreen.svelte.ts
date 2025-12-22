@@ -28,6 +28,13 @@ const eventHandlers = [
 	"MSFullscreenChange",
 ] as any as "fullscreenchange"[];
 
+/**
+ * Reactive Fullscreen API.
+ *
+ * @see https://runed.dev/docs/utilities/use-fullscreen
+ * @param targetGetter
+ * @param options
+ */
 export function useFullscreen<T extends Element = HTMLElement>(
 	targetGetter?: MaybeElementGetter<T>,
 	options: UseFullscreenOptions = {}
