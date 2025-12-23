@@ -15,7 +15,7 @@ describe("useFullscreen", () => {
 		mockDocument = {
 			...document,
 			fullscreenElement: null,
-			// The code checks for 'fullScreen' not 'fullscreenEnabled'
+			// @ts-ignore - The code checks for 'fullScreen' not 'fullscreenEnabled'
 			fullScreen: false,
 			requestFullscreen: vi.fn().mockResolvedValue(undefined),
 			exitFullscreen: vi.fn().mockResolvedValue(undefined),
